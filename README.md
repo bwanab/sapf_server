@@ -18,7 +18,7 @@ have them executed using sapf.
   
   iex> play_midi_file("Yourmidifile.mid") # this plays by default using a simple synth set up in sapf_snippets.sapf
 
-One can also send any command to sapf that one can directly to sapf:
+### One can also send any command to sapf that one can directly to sapf:
 
   iex> send_command("3 4 *") -> 12
   
@@ -26,7 +26,7 @@ One can also send any command to sapf that one can directly to sapf:
   
   iex> stop
   
-In addition, there is a simple command line utility that allows one to interact with sapf as one would directly:
+### In addition, there is a simple command line utility that allows one to interact with sapf as one would directly:
 
   iex> SAPFCli.start()
   
@@ -36,7 +36,7 @@ In addition, there is a simple command line utility that allows one to interact 
   
   SAPF> stop
 
-The command line also knows the added functionality of the SAPFServer:
+### The command line also knows the added functionality of the SAPFServer:
 
   SAPF> midi_start
   
