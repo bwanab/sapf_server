@@ -16,7 +16,7 @@ have them executed using sapf.
   
   iex> connect_input()               # connect the virtual midi port to sapf
   
-  iex> play_midi_file("Yourmidifile.mid") # this plays by default using a simple synth set up in sapf_snippets.sapf
+  iex> play("Yourmidifile.mid") # this plays by default using a simple synth set up in sapf_snippets.sapf
 
 ### One can also send any command to sapf that one can directly to sapf:
 
@@ -42,7 +42,7 @@ have them executed using sapf.
   
   SAPF> connect_input
   
-  SAPF> play_midi_file Yourmidifile.mid
+  SAPF> play Yourmidifile.mid
 
 ## Installation
 

@@ -15,7 +15,7 @@
 ; <%= dev %> 1 mlastkey mbs.out + nnhz 0 lfsquare 0.2 * play
 
 {
-    :low        0
+    :low        1        ; should be 0, but that won't work if no pitch_bend events are present.
     :high       10
     :channel    1
     :control    2

@@ -7,7 +7,7 @@ defmodule SAPFCli do
     "help" => &SAPFCli.help/1,
     "midi_start" => &SAPFCli.midi_start/1,
     "midi_connect_input" => &SAPFCli.midi_connect_input/1,
-    "play_midi_file" => &SAPFCli.play_midi_file/1,
+    "play" => &SAPFCli.play/1,
     "quit" => "dork"
   }
 
@@ -106,8 +106,8 @@ defmodule SAPFCli do
     SAPFServer.connect_input()
   end
 
-  def play_midi_file(filename) do
-    SAPFServer.play_midi_file(filename)
+  def play(filename) do
+    SAPFServer.play(filename)
   end
 
   def quit(_args) do

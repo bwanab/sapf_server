@@ -17,7 +17,7 @@ defmodule SAPFServer do
       SAPFServer.start_link(0)
       SAPFServer.midi_start()
       SAPFServer.connect_input()
-      SAPFServer.play_midi_file("Yourmidifile.mid", "sapf_snippets.sapf")
+      SAPFServer.play("Yourmidifile.mid", "sapf_snippets.sapf")
 
   You can send any command to sapf:
 
@@ -37,11 +37,26 @@ defmodule SAPFServer do
   end
 
   def send_command(command, param \\ "") do
-    GenServer.call(__MODULE__, {:send_command, command, param})
+    if is_binary(param) and String.length(param) == 0 do
+      GenServer.call(__MODULE__, {:send_command, command, param, nil})
+    else
+      task = Task.async(fn ->
+        reply_pid = self()
+        # IO.inspect(reply_pid, label: "reply_pid when called")
+        GenServer.call(__MODULE__, {:send_command, command, param, reply_pid})
+        # Wait for completion message
+        receive do
+          :command_completed ->
+            :ok
+        after
+          5000 -> {:error, :timeout}
+        end
+      end)
+      Task.await(task)
+    end
   end
 
   def midi_start() do
-    # send_command("'%%%'")
     sapf_port = Midiex.create_virtual_output("sapf")
     send_command("midiStart", sapf_port)
   end
@@ -85,14 +100,26 @@ defmodule SAPFServer do
     send_command("stop")
   end
 
+  def play(d, opts \\ [])
+  def play(name, opts)  when is_binary(name) do
+    seq = Midifile.read(name)
+    play(seq, opts)
+  end
 
-  def play_midi_file(file_name, synth_file \\ "sapf_snippets.sapf") do
+  def play(%Midifile.Sequence{} = seq, opts) do
+    synth_file = Keyword.get(opts, :synth_file, "sapf_snippets.sapf")
     case build_synth(synth_file) do
       :ok ->
-        seq = Midifile.read(file_name)
         MidiPlayer.play(seq, synth: get_sapf_port())
       {:error, msg} -> IO.puts(msg)
     end
+  end
+
+  def play(stm, opts) do
+    bpm = Keyword.get(opts, :bpm, 100)
+    tpqn = Keyword.get(opts, :tpqn, 960)
+    seq = MusicBuild.Util.build_sequence(stm, "dork", bpm, tpqn)
+    play(seq, opts)
   end
 
   def init(_arg) do
@@ -107,14 +134,15 @@ defmodule SAPFServer do
             device_list: %{},
             sapf_port: nil,
             param: "",
-            timer_ref: nil
+            timer_ref: nil,
+            command_pid: nil
             }}
   end
 
-  def handle_call({:send_command, command, param}, _from, %{port: port} = state) do
+  def handle_call({:send_command, command, param, reply_pid}, _from, %{port: port} = state) do
     Port.command(port, command <> "\n")
     # IO.inspect(command)
-    {:reply, :ok, %{state | current_command: command, responses: [], param: param}}
+    {:reply, :ok, %{state | current_command: command, responses: [], param: param, command_pid: reply_pid}}
   end
 
   def handle_call(:get_device_list, _from, %{device_list: device_list} = state) do
@@ -133,15 +161,18 @@ defmodule SAPFServer do
     {:noreply, %{state | responses: [line | resp], timer_ref: timer_ref}}
   end
 
-  def handle_info(:response_timeout, %{responses: resp, current_command: cmd, param: param} = state) do
+  def handle_info(:response_timeout, %{responses: resp, current_command: cmd, param: param, command_pid: reply_pid} = state) do
     Enum.each(resp, fn s -> if not String.contains?(s, "sapf>"), do: IO.puts(s) end)
     if cmd == "midiStart" do
+      # IO.inspect(reply_pid, label: "reply_pid")
+      if reply_pid, do: send(reply_pid, :command_completed)
       {:noreply, %{state | sapf_port: param,
                            device_list: parse_midi_start(Enum.reverse(resp)),
                            timer_ref: nil,
                            current_command: "",
                            param: "",
-                           responses: []
+                           responses: [],
+                           command_pid: nil
                           }}
     else
       {:noreply, %{state | timer_ref: nil}}
