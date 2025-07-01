@@ -17,7 +17,7 @@ defmodule SAPFServer do
       SAPFServer.start_link(0)
       SAPFServer.midi_start()
       SAPFServer.connect_input()
-      SAPFServer.play("Yourmidifile.mid", "sapf_snippets.sapf")
+      SAPFServer.play("Yourmidifile.mid", "synths/basic_synth.sapf")
 
   You can send any command to sapf:
 
@@ -120,7 +120,7 @@ defmodule SAPFServer do
   end
 
   def play(%Midifile.Sequence{} = seq, opts) do
-    synth_file = Keyword.get(opts, :synth_file, "sapf_snippets.sapf")
+    synth_file = Keyword.get(opts, :synth_file, "synths/basic_synth.sapf")
     case build_synth(synth_file) do
       :ok ->
         pid = MidiPlayer.play(seq, synth: get_sapf_port())
