@@ -1,0 +1,15 @@
+{
+    :delay    .2    ;seconds
+    :maxdelay 0     ;seconds
+    :decay    4     ;seconds
+    :out    \o[
+               <%= dev %> 1 mlastkey
+               mbs.out +
+               nnhz 0 lfsaw
+               <%= dev %> 1 0 1 mlastvel *
+               breath_ctl.out *
+               o.delay o.maxdelay o.decay combn
+               ]
+} = my_synth
+
+my_synth.out play

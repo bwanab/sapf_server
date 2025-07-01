@@ -37,28 +37,37 @@ defmodule SAPFServer do
   end
 
   def send_command(command, param \\ "") do
-    if is_binary(param) and String.length(param) == 0 do
-      GenServer.call(__MODULE__, {:send_command, command, param, nil})
-    else
-      task = Task.async(fn ->
-        reply_pid = self()
-        # IO.inspect(reply_pid, label: "reply_pid when called")
-        GenServer.call(__MODULE__, {:send_command, command, param, reply_pid})
-        # Wait for completion message
-        receive do
-          :command_completed ->
-            :ok
-        after
-          5000 -> {:error, :timeout}
-        end
-      end)
-      Task.await(task)
+    # IO.inspect(command, label: "command")
+    timer_time = case command do
+      "midiStart" -> 500
+      _ -> 10
     end
+    task = Task.async(fn ->
+      reply_pid = self()
+      # IO.inspect(reply_pid, label: "reply_pid when called")
+      GenServer.call(__MODULE__, {:send_command, command, param, reply_pid})
+      # Wait for completion message
+      receive do
+        :command_completed ->
+          :ok
+      after # this clause is for commands that don't produce any output.
+            # The problem is that many commands do and are handle nicely
+            # by the :command_completed clause, but if they don't we default
+            # to the notion that the command did complete successfully
+            # in the time allotted. The problem the timer is solving
+            # is that without it sapf appears to get overloaded with too
+            # many commands, for example, when loading a file of commands and
+            # it hangs.
+          timer_time -> :ok
+      end
+    end)
+    Task.await(task)
   end
 
   def midi_start() do
     sapf_port = Midiex.create_virtual_output("sapf")
     send_command("midiStart", sapf_port)
+    load_prelude()
   end
 
   def get_devices() do
@@ -77,6 +86,10 @@ defmodule SAPFServer do
     m = get_device(device)
     command = EEx.eval_string("<%= uid %> <%= dev %> midiConnectInput", Keyword.new(m))
     send_command(command)
+  end
+
+  def load_prelude() do
+    build_synth("sapf_prelude.sapf")
   end
 
   def build_synth(file_name, device \\ "sapf") do

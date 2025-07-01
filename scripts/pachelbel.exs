@@ -1,7 +1,7 @@
 Mix.install([
   {:music_build, github: "bwanab/music_build"},
   {:sapf_server, path: "."}
-], force: true)
+])
 
 chords = MusicBuild.Examples.ArpeggioProgressions.build_chords([:I, :V, :vi, :iii, :IV, :I, :IV, :V], :C, 3, 1, 0)
 patterns = [
@@ -22,4 +22,4 @@ stm = %{0 => STrack.new(arpeggios, name: "arpeggios", tpqn: 960, type: :instrume
 SAPFServer.start_link(0)
 SAPFServer.midi_start()
 SAPFServer.connect_input()
-SAPFServer.play(stm)
+SAPFServer.play(stm, synth_file: "synths/basic_synth.sapf")
