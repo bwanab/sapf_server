@@ -138,6 +138,8 @@ defmodule SAPFServer do
   end
 
   def init(_arg) do
+    # Note that this line may very well be MacOS dependent. What it's doing is launching sapf as
+    # if it were being loaded as a script so it will accept command line from its caller - this server
     port = Port.open({:spawn, "script -q /dev/null sapf"}, [
       :binary,
       :exit_status,
