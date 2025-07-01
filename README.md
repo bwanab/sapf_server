@@ -44,6 +44,8 @@ have them executed using sapf.
   
   SAPF> play Yourmidifile.mid
 
+### There are more complex examples in the scripts directory.
+
 ## Installation
 
 Currently only available via source from github:

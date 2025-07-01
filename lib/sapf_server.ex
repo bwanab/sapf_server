@@ -110,7 +110,9 @@ defmodule SAPFServer do
     synth_file = Keyword.get(opts, :synth_file, "sapf_snippets.sapf")
     case build_synth(synth_file) do
       :ok ->
-        MidiPlayer.play(seq, synth: get_sapf_port())
+        pid = MidiPlayer.play(seq, synth: get_sapf_port())
+        MidiPlayer.wait_play(pid)
+        stop()
       {:error, msg} -> IO.puts(msg)
     end
   end
