@@ -24,4 +24,10 @@
                 ]
 } = breath_ctl
 
-<%= dev %> 1 mlastkey mbs.out + nnhz 0 lfsaw <%= dev %> 1 0 1 mlastvel * breath_ctl.out *  play
+               <%= dev %> 1 mlastkey
+               mbs.out +
+               nnhz 0 lfsaw
+               <%= dev %> 1 0 1 mlastvel *
+               breath_ctl.out *
+               0.2 0 4 combn
+               play
