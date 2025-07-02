@@ -137,6 +137,17 @@ defmodule SAPFServer do
     play(seq, opts)
   end
 
+  def live_play(opts \\ []) do
+    synth_file = Keyword.get(opts, :synth_file, "synths/basic_synth.sapf")
+    case build_synth(synth_file) do
+      :ok ->
+        AE30Player.start_link(Keyword.put(opts, :synth, get_sapf_port()))
+      {:error, msg} -> IO.puts(msg)
+    end
+
+
+  end
+
   def init(_arg) do
     # Note that this line may very well be MacOS dependent. What it's doing is launching sapf as
     # if it were being loaded as a script so it will accept command line from its caller - this server
