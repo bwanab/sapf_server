@@ -1,0 +1,22 @@
+{
+    :delay    .2    ;seconds
+    :maxdelay 0     ;seconds
+    :decay    4     ;seconds
+    :out    \o[
+               <%= dev %> 1 mlastkey
+               mbs.out +
+               nnhz = root_freq
+               [root_freq 1 * 0 sinosc  {breath_ctl :control 20 :low 0}.out *
+                root_freq 2 * 0 sinosc  {breath_ctl :control 21 :low 0}.out *
+                root_freq 3 * 0 sinosc  {breath_ctl :control 22 :low 0}.out *
+                root_freq 4 * 0 sinosc  {breath_ctl :control 23 :low 0}.out *
+                root_freq 5 * 0 sinosc  {breath_ctl :control 24 :low 0}.out *
+                root_freq 6 * 0 sinosc  {breath_ctl :control 25 :low 0}.out *
+                ] +/
+               <%= dev %> 1 0 1 mlastvel *
+               breath_ctl.out *
+               o.delay o.maxdelay o.decay combn
+               ]
+} = my_synth
+
+my_synth.out play

@@ -32,7 +32,7 @@ defmodule SAPFServer do
 
   """
 
-  def start_link(arg) do
+  def start_link(arg \\ 0) do
     GenServer.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
@@ -105,14 +105,6 @@ defmodule SAPFServer do
     end
   end
 
-  def quit() do
-    send_command("quit")
-  end
-
-  def stop() do
-    send_command("stop")
-  end
-
   def play(d, opts \\ [])
   def play(name, opts)  when is_binary(name) do
     seq = Midifile.read(name)
@@ -121,11 +113,14 @@ defmodule SAPFServer do
 
   def play(%Midifile.Sequence{} = seq, opts) do
     synth_file = Keyword.get(opts, :synth_file, "synths/basic_synth.sapf")
+    wait = Keyword.get(opts, :wait, true)
     case build_synth(synth_file) do
       :ok ->
         pid = MidiPlayer.play(seq, synth: get_sapf_port())
-        MidiPlayer.wait_play(pid)
-        stop()
+        if wait do
+          MidiPlayer.wait_play(pid)
+          stop()
+        end
       {:error, msg} -> IO.puts(msg)
     end
   end
@@ -144,8 +139,26 @@ defmodule SAPFServer do
         AE30Player.start_link(Keyword.put(opts, :synth, get_sapf_port()))
       {:error, msg} -> IO.puts(msg)
     end
+  end
 
+  def send_control_message(controller_number, value, channel \\ 0) do
+    c = Controller.new(controller_number, value, channel)
+    e = MusicBuild.EventBuilder.new(:controller, c) |> List.first()
+    Midiex.send_msg(get_sapf_port(), IO.iodata_to_binary(e.bytes))
+  end
 
+  ####### convenience functions ###########
+
+  def quit() do
+    send_command("quit")
+  end
+
+  def stop() do
+    send_command("stop")
+  end
+
+  def clear() do
+    send_command("clear")
   end
 
   def init(_arg) do
