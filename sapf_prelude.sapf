@@ -26,3 +26,14 @@
                 0 o.channel o.control o.low o.high mctl
                 ]
 } = breath_ctl
+
+; a unit generator to get instantaneous values
+{
+    :low        1
+    :high       10
+    :channel    1
+    :control    2
+    :out        \o[
+                0 o.channel o.control o.low o.high mctl1
+                ]
+} = inst_ctl
